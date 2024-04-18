@@ -1,95 +1,92 @@
 <script>
   AFRAME.registerComponent('draggable', {
-    schema: {
-      speed: {type: 'number', default: 0.5}
-    },
-    init: function() {
+    init: function () {
       this.ifMouseDown = false;
-      this.x_cord = 0;
-      this.y_cord = 0;
-      this.handleMouseDown = this.handleMouseDown.bind(this);
-      this.handleMouseUp = this.handleMouseUp.bind(this);
-      this.handleMouseMove = this.handleMouseMove.bind(this);
-      this.handleTouchStart = this.handleTouchStart.bind(this);
-      this.handleTouchMove = this.handleTouchMove.bind(this);
-      this.handleTouchEnd = this.handleTouchEnd.bind(this);
+      this.initialCoord = {x: 0, y: 0};
+      this.initialRotation = {x: 0, y: 0};
+      this.initialPosition = {x: 0, y: 0, z: 0};
 
-      this.el.addEventListener('mousedown', this.handleMouseDown);
-      window.addEventListener('mouseup', this.handleMouseUp);
-      this.el.addEventListener('mousemove', this.handleMouseMove);
-      this.el.sceneEl.canvas.addEventListener('touchstart', this.handleTouchStart, false);
-      this.el.sceneEl.canvas.addEventListener('touchmove', this.handleTouchMove, false);
-      this.el.sceneEl.canvas.addEventListener('touchend', this.handleTouchEnd, false);
+      this.onMouseDown = this.onMouseDown.bind(this);
+      this.onMouseMove = this.onMouseMove.bind(this);
+      this.onMouseUp = this.onMouseUp.bind(this);
+      this.onTouchStart = this.onTouchStart.bind(this);
+      this.onTouchMove = this.onTouchMove.bind(this);
+      this.onTouchEnd = this.onTouchEnd.bind(this);
+
+      this.el.addEventListener('mousedown', this.onMouseDown);
+      this.el.addEventListener('touchstart', this.onTouchStart);
+      window.addEventListener('mouseup', this.onMouseUp);
+      window.addEventListener('touchend', this.onTouchEnd);
+      this.el.addEventListener('mousemove', this.onMouseMove);
+      this.el.addEventListener('touchmove', this.onTouchMove);
     },
-    remove: function() {
-      this.el.removeEventListener('mousedown', this.handleMouseDown);
-      window.removeEventListener('mouseup', this.handleMouseUp);
-      this.el.removeEventListener('mousemove', this.handleMouseMove);
-      this.el.sceneEl.canvas.removeEventListener('touchstart', this.handleTouchStart);
-      this.el.sceneEl.canvas.removeEventListener('touchmove', this.handleTouchMove);
-      this.el.sceneEl.canvas.removeEventListener('touchend', this.handleTouchEnd);
+    remove: function () {
+      this.el.removeEventListener('mousedown', this.onMouseDown);
+      this.el.removeEventListener('touchstart', this.onTouchStart);
+      window.removeEventListener('mouseup', this.onMouseUp);
+      window.removeEventListener('touchend', this.onTouchEnd);
+      this.el.removeEventListener('mousemove', this.onMouseMove);
+      this.el.removeEventListener('touchmove', this.onTouchMove);
     },
-    handleMouseDown: function(event) {
+    onMouseDown: function (event) {
       this.ifMouseDown = true;
-      this.x_cord = event.clientX;
-      this.y_cord = event.clientY;
-      this.shiftKey = event.shiftKey;
-      this.ctrlKey = event.ctrlKey;
+      this.initialCoord.x = event.clientX;
+      this.initialCoord.y = event.clientY;
+      this.initialRotation = this.el.getAttribute('rotation');
+      this.initialPosition = this.el.getAttribute('position');
     },
-    handleMouseUp: function() {
+    onMouseMove: function (event) {
+      if (!this.ifMouseDown) return;
+      var deltaX = event.clientX - this.initialCoord.x;
+      var deltaY = event.clientY - this.initialCoord.y;
+      this.el.setAttribute('rotation', {
+        x: this.initialRotation.x - deltaY * 0.1,
+        y: this.initialRotation.y + deltaX * 0.1,
+        z: this.initialRotation.z
+      });
+    },
+    onMouseUp: function () {
       this.ifMouseDown = false;
     },
-    handleMouseMove: function(event) {
-      if (this.ifMouseDown) {
-        var deltaX = event.clientX - this.x_cord;
-        var deltaY = event.clientY - this.y_cord;
-        this.x_cord = event.clientX;
-        this.y_cord = event.clientY;
-        var position = this.el.getAttribute('position');
-        var rotation = this.el.getAttribute('rotation');
-
-        if (this.shiftKey) {
-          // Move object along X and Z axis
-          position.x += deltaX * this.data.speed * 0.1;
-          position.z -= deltaY * this.data.speed * 0.1;
-          this.el.setAttribute('position', position);
-        } else if (this.ctrlKey) {
-          // Move object along Y axis
-          position.y += deltaY * this.data.speed * 0.1;
-          this.el.setAttribute('position', position);
-        } else {
-          // Rotate object
-          rotation.y += deltaX * this.data.speed;
-          rotation.x -= deltaY * this.data.speed;
-          this.el.setAttribute('rotation', rotation);
-        }
+    onTouchStart: function (event) {
+      if (event.touches.length == 1) {
+        this.ifMouseDown = true;
+        this.initialCoord.x = event.touches[0].clientX;
+        this.initialCoord.y = event.touches[0].clientY;
+        this.initialRotation = this.el.getAttribute('rotation');
+      } else if (event.touches.length == 2) {
+        this.ifMouseDown = true;
+        this.initialCoord.x = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+        this.initialCoord.y = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+        this.initialPosition = this.el.getAttribute('position');
       }
     },
-    handleTouchStart: function(event) {
-      this.ifMouseDown = true;
-      this.x_cord = event.touches[0].clientX;
-      this.y_cord = event.touches[0].clientY;
-      event.preventDefault();
-    },
-    handleTouchMove: function(event) {
-      if (this.ifMouseDown) {
-        var deltaX = event.touches[0].clientX - this.x_cord;
-        var deltaY = event.touches[0].clientY - this.y_cord;
-        this.x_cord = event.touches[0].clientX;
-        this.y_cord = event.touches[0].clientY;
-        var position = this.el.getAttribute('position');
-        var rotation = this.el.getAttribute('rotation');
+    onTouchMove: function (event) {
+      if (!this.ifMouseDown || event.touches.length == 0) return;
 
-        // Assume default touch is for movement
-        position.x += deltaX * this.data.speed * 0.1;
-        position.z -= deltaY * this.data.speed * 0.1;
-        this.el.setAttribute('position', position);
-
-        event.preventDefault();
+      if (event.touches.length == 1) {
+        var deltaX = event.touches[0].clientX - this.initialCoord.x;
+        var deltaY = event.touches[0].clientY - this.initialCoord.y;
+        this.el.setAttribute('rotation', {
+          x: this.initialRotation.x - deltaY * 0.1,
+          y: this.initialRotation.y + deltaX * 0.1,
+          z: this.initialRotation.z
+        });
+      } else if (event.touches.length == 2) {
+        var currentCoordX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+        var currentCoordY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+        var deltaX = currentCoordX - this.initialCoord.x;
+        var deltaY = currentCoordY - this.initialCoord.y;
+        this.el.setAttribute('position', {
+          x: this.initialPosition.x + deltaX * 0.01,
+          y: this.initialPosition.y,
+          z: this.initialPosition.z + deltaY * 0.01
+        });
       }
     },
-    handleTouchEnd: function() {
+    onTouchEnd: function () {
       this.ifMouseDown = false;
     }
   });
 </script>
+
