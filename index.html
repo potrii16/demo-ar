@@ -6,10 +6,59 @@
     <script>
       AFRAME.registerComponent('clickable', {
         init: function() {
-          // Using 'mousedown' for compatibility with desktop and AR.js interaction model
-          this.el.addEventListener('mousedown', (evt) => {
+          this.el.addEventListener('click', () => {
             alert('Button clicked!');
           });
+
+          // Mobile touch input
+          this.el.addEventListener('touchend', () => {
+            alert('Button clicked!');
+          });
+        }
+      });
+
+      AFRAME.registerComponent('touch-rotate', {
+        schema: {
+          speed: {type: 'number', default: 1}
+        },
+        init: function() {
+          this.ifMouseDown = false;
+          this.x_cord = 0;
+          this.y_cord = 0;
+          
+          this.handleMouseDown = (evt) => {
+            this.ifMouseDown = true;
+            this.x_cord = evt.touches[0].clientX;
+            this.y_cord = evt.touches[0].clientY;
+          };
+          
+          this.handleMouseMove = (evt) => {
+            if (this.ifMouseDown) {
+              const movementX = evt.touches[0].clientX - this.x_cord;
+              const movementY = evt.touches[0].clientY - this.y_cord;
+              this.x_cord = evt.touches[0].clientX;
+              this.y_cord = evt.touches[0].clientY;
+              const rotation = this.el.getAttribute('rotation');
+              
+              rotation.y += movementX * this.data.speed;
+              rotation.x += movementY * this.data.speed;
+              this.el.setAttribute('rotation', rotation);
+            }
+          };
+          
+          this.handleMouseUp = () => {
+            this.ifMouseDown = false;
+          };
+
+          // Desktop mouse events
+          this.el.addEventListener('mousedown', this.handleMouseDown);
+          this.el.addEventListener('mousemove', this.handleMouseMove);
+          window.addEventListener('mouseup', this.handleMouseUp);
+
+          // Mobile touch events
+          this.el.addEventListener('touchstart', this.handleMouseDown);
+          this.el.addEventListener('touchmove', this.handleMouseMove);
+          this.el.addEventListener('touchend', this.handleMouseUp);
         }
       });
     </script>
@@ -18,9 +67,10 @@
 <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
     <a-marker preset='hiro'>
         <!-- Main Red Cube -->
-        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5">
-            <!-- Yellow Button Cube, positioned on top of the red cube and smaller in size -->
-            <a-box position="0 0.3 0" material="color: yellow; opacity: 0.9" scale="0.2 0.2 0.2" clickable></a-box>
+        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate>
+            <!-- Yellow Button Cube -->
+            <a-box position="0 0.5 0" rotation="0 0 0" material="color: yellow; opacity: 0.9"
+                   scale="0.2 0.2 0.2" clickable></a-box>
         </a-box>
     </a-marker>
     <a-entity camera></a-entity>
