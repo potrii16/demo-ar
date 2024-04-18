@@ -4,76 +4,61 @@
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
     <script>
-      AFRAME.registerComponent('clickable', {
+      AFRAME.registerComponent('touch-rotate', {
         init: function() {
-          this.el.addEventListener('click', () => {
-            alert('Button clicked!');
+          this.el.addEventListener('touchmove', (event) => {
+            if (event.touches.length == 1) { // Single finger touch does rotate
+              const touch = event.touches[0];
+              const deltaX = touch.pageX - this.touchStartX;
+              const deltaY = touch.pageY - this.touchStartY;
+              this.touchStartX = touch.pageX;
+              this.touchStartY = touch.pageY;
+              let rotation = this.el.getAttribute('rotation');
+              rotation.y += deltaX * 0.1; // Control the rotation speed
+              rotation.x += deltaY * 0.1; // Control the rotation speed
+              this.el.setAttribute('rotation', rotation);
+            }
           });
 
-          // Mobile touch input
-          this.el.addEventListener('touchend', () => {
-            alert('Button clicked!');
+          this.el.addEventListener('touchstart', (event) => {
+            this.touchStartX = event.touches[0].pageX;
+            this.touchStartY = event.touches[0].pageY;
           });
         }
       });
 
-      AFRAME.registerComponent('touch-rotate', {
-        schema: {
-          speed: {type: 'number', default: 1}
-        },
+      AFRAME.registerComponent('clickable', {
         init: function() {
-          this.ifMouseDown = false;
-          this.x_cord = 0;
-          this.y_cord = 0;
-          
-          this.handleMouseDown = (evt) => {
-            this.ifMouseDown = true;
-            this.x_cord = evt.touches[0].clientX;
-            this.y_cord = evt.touches[0].clientY;
-          };
-          
-          this.handleMouseMove = (evt) => {
-            if (this.ifMouseDown) {
-              const movementX = evt.touches[0].clientX - this.x_cord;
-              const movementY = evt.touches[0].clientY - this.y_cord;
-              this.x_cord = evt.touches[0].clientX;
-              this.y_cord = evt.touches[0].clientY;
-              const rotation = this.el.getAttribute('rotation');
-              
-              rotation.y += movementX * this.data.speed;
-              rotation.x += movementY * this.data.speed;
-              this.el.setAttribute('rotation', rotation);
-            }
-          };
-          
-          this.handleMouseUp = () => {
-            this.ifMouseDown = false;
-          };
+          this.el.addEventListener('click', () => {
+            alert('Button clicked!'); // Replace this with your own logic.
+          });
 
-          // Desktop mouse events
-          this.el.addEventListener('mousedown', this.handleMouseDown);
-          this.el.addEventListener('mousemove', this.handleMouseMove);
-          window.addEventListener('mouseup', this.handleMouseUp);
-
-          // Mobile touch events
-          this.el.addEventListener('touchstart', this.handleMouseDown);
-          this.el.addEventListener('touchmove', this.handleMouseMove);
-          this.el.addEventListener('touchend', this.handleMouseUp);
+          // Add listener for mobile devices
+          this.el.addEventListener('touchstart', () => {
+            alert('Button clicked!'); // Replace this with your own logic.
+          });
         }
       });
     </script>
 </head>
 <body style='margin: 0; overflow: hidden;'>
 <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+
+    <!-- Adding a cursor for mobile interactions -->
+    <a-entity id="cameraRig">
+      <a-camera position="0 0 0" look-controls>
+        <a-cursor id="cursor" raycaster="objects: .clickable" fuse="false"></a-cursor>
+      </a-camera>
+    </a-entity>
+
     <a-marker preset='hiro'>
-        <!-- Main Red Cube -->
+        <!-- Main Red Cube that can rotate -->
         <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate>
-            <!-- Yellow Button Cube -->
-            <a-box position="0 0.5 0" rotation="0 0 0" material="color: yellow; opacity: 0.9"
-                   scale="0.2 0.2 0.2" clickable></a-box>
+            <!-- Yellow Button Cube on top of the red cube that is clickable -->
+            <a-box position="0 0.2 0" material="color: yellow; opacity: 0.9" scale="0.2 0.2 0.2" class="clickable" clickable></a-box>
         </a-box>
     </a-marker>
-    <a-entity camera></a-entity>
+
 </a-scene>
 </body>
 </html>
