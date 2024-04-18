@@ -6,64 +6,80 @@
     <script>
       AFRAME.registerComponent('draggable', {
         schema: {
-          speed: {default: 1}
+          speed: {type: 'number', default: 0.5}
         },
-        init: function () {
+        init: function() {
+          this.handleMouseDown = this.handleMouseDown.bind(this);
+          this.handleMouseUp = this.handleMouseUp.bind(this);
+          this.handleMouseMove = this.handleMouseMove.bind(this);
+          this.handleTouchStart = this.handleTouchStart.bind(this);
+          this.handleTouchMove = this.handleTouchMove.bind(this);
+          this.handleTouchEnd = this.handleTouchEnd.bind(this);
+
+          this.el.addEventListener('mousedown', this.handleMouseDown);
+          this.el.addEventListener('mouseup', this.handleMouseUp);
+          this.el.addEventListener('mousemove', this.handleMouseMove);
+          this.el.sceneEl.canvas.addEventListener('touchstart', this.handleTouchStart);
+          this.el.sceneEl.canvas.addEventListener('touchmove', this.handleTouchMove);
+          this.el.sceneEl.canvas.addEventListener('touchend', this.handleTouchEnd);
+        },
+        remove: function() {
+          this.el.removeEventListener('mousedown', this.handleMouseDown);
+          this.el.removeEventListener('mouseup', this.handleMouseUp);
+          this.el.removeEventListener('mousemove', this.handleMouseMove);
+          this.el.sceneEl.canvas.removeEventListener('touchstart', this.handleTouchStart);
+          this.el.sceneEl.canvas.removeEventListener('touchmove', this.handleTouchMove);
+          this.el.sceneEl.canvas.removeEventListener('touchend', this.handleTouchEnd);
+        },
+        handleMouseDown: function(event) {
+          this.ifMouseDown = true;
+          this.x_cord = event.clientX;
+          this.y_cord = event.clientY;
+        },
+        handleMouseUp: function() {
           this.ifMouseDown = false;
-          this.x_cord = 0;
-          this.y_cord = 0;
-          this.addEventListener('mousedown', (event) => {
-            this.ifMouseDown = true;
+        },
+        handleMouseMove: function(event) {
+          if (this.ifMouseDown) {
+            var temp_x = event.clientX - this.x_cord;
+            var temp_y = event.clientY - this.y_cord;
             this.x_cord = event.clientX;
             this.y_cord = event.clientY;
-          });
-          this.addEventListener('mouseup', () => {
-            this.ifMouseDown = false;
-          });
-          this.addEventListener('mousemove', (event) => {
-            if (this.ifMouseDown) {
-              var temp_x = event.clientX-this.x_cord;
-              var temp_y = event.clientY-this.y_cord;
-              this.x_cord = event.clientX;
-              this.y_cord = event.clientY;
-              var rotation = this.el.getAttribute('rotation');
-              rotation.y += temp_x * this.data.speed;
-              rotation.x -= temp_y * this.data.speed;
-              this.el.setAttribute('rotation', rotation);
-            }
-          });
-          // Add touch events for mobile
-          this.el.sceneEl.canvas.addEventListener('touchstart', (event) => {
-            this.ifMouseDown = true;
+            var rotation = this.el.getAttribute('rotation');
+            rotation.y += temp_x * this.data.speed;
+            rotation.x -= temp_y * this.data.speed;
+            this.el.setAttribute('rotation', rotation);
+          }
+        },
+        handleTouchStart: function(event) {
+          this.ifMouseDown = true;
+          this.x_cord = event.touches[0].clientX;
+          this.y_cord = event.touches[0].clientY;
+          event.preventDefault();
+        },
+        handleTouchMove: function(event) {
+          if (this.ifMouseDown) {
+            var temp_x = event.touches[0].clientX - this.x_cord;
+            var temp_y = event.touches[0].clientY - this.y_cord;
             this.x_cord = event.touches[0].clientX;
             this.y_cord = event.touches[0].clientY;
-          }, false);
-          this.el.sceneEl.canvas.addEventListener('touchend', () => {
-            this.ifMouseDown = false;
-          }, false);
-          this.el.sceneEl.canvas.addEventListener('touchmove', (event) => {
-            if (this.ifMouseDown) {
-              var temp_x = event.touches[0].clientX - this.x_cord;
-              var temp_y = event.touches[0].clientY - this.y_cord;
-              this.x_cord = event.touches[0].clientX;
-              this.y_cord = event.touches[0].clientY;
-              var rotation = this.el.getAttribute('rotation');
-              rotation.y += temp_x * this.data.speed;
-              rotation.x -= temp_y * this.data.speed;
-              this.el.setAttribute('rotation', rotation);
-            }
-          }, false);
+            var rotation = this.el.getAttribute('rotation');
+            rotation.y += temp_x * this.data.speed;
+            rotation.x -= temp_y * this.data.speed;
+            this.el.setAttribute('rotation', rotation);
+          }
+          event.preventDefault();
+        },
+        handleTouchEnd: function() {
+          this.ifMouseDown = false;
         }
       });
     </script>
 </head>
-<body style='margin : 0px; overflow: hidden;'>
+<body style='margin: 0; overflow: hidden;'>
 <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-    <a-marker preset='custom' url='pattern.patt'>
-        <a-box position='0 0.5 0' material='color: green; opacity: 0.5'></a-box>
-    </a-marker>
     <a-marker preset='hiro'>
-        <a-box position="0 0.5 0" material="color: red; opacity: 0.5" draggable="speed: 0.5"></a-box>
+        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" draggable></a-box>
     </a-marker>
     <a-entity camera></a-entity>
 </a-scene>
