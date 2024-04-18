@@ -1,4 +1,4 @@
-<!doctype HTML>
+<!DOCTYPE html>
 <html>
 <head>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -6,7 +6,7 @@
     <script>
       AFRAME.registerComponent('touch-rotate', {
         schema: {
-          speed: {type: 'number', default: 5} // Adjust speed for sensitivity
+          speed: {type: 'number', default: 5}
         },
         init: function() {
           this.startTouch = null;
@@ -21,7 +21,7 @@
           this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd);
         },
         handleTouchStart: function(event) {
-          if (event.touches.length === 1) { // Only initiate for single touch
+          if (event.touches.length === 1) {
             this.startTouch = {
               x: event.touches[0].clientX,
               y: event.touches[0].clientY
@@ -47,8 +47,21 @@
           }
         },
         handleTouchEnd: function(event) {
-          this.startTouch = null; // Reset start touch position
+          this.startTouch = null;
           this.startRotation = null;
+        }
+      });
+
+      AFRAME.registerComponent('clickable', {
+        init: function() {
+          this.el.addEventListener('click', function(evt) {
+            alert('Button clicked!'); // Replace with your click logic
+          });
+
+          this.el.addEventListener('touchstart', function(evt) {
+            alert('Button touched!'); // Replace with your touch logic
+            evt.preventDefault();
+          });
         }
       });
     </script>
@@ -56,7 +69,12 @@
 <body style='margin: 0; overflow: hidden;'>
 <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
     <a-marker preset='hiro'>
-        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate></a-box>
+        <!-- Main Red Cube -->
+        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate>
+            <!-- Yellow Button Cube -->
+            <a-box position="0 0.25 0" rotation="0 0 0" material="color: yellow; opacity: 0.9"
+                   scale="0.3 0.3 0.3" clickable></a-box>
+        </a-box>
     </a-marker>
     <a-entity camera></a-entity>
 </a-scene>
