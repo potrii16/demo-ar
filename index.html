@@ -52,8 +52,9 @@
 
       AFRAME.registerComponent('click-listener', {
         init: function() {
-          this.el.addEventListener('click', function() {
+          this.el.addEventListener('click', function(evt) {
             alert('Button clicked');
+            evt.stopPropagation(); // Stop the event from bubbling up
           });
         }
       });
