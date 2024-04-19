@@ -6,7 +6,7 @@
     <script>
       AFRAME.registerComponent('touch-rotate', {
         schema: {
-          speed: {type: 'number', default: 5} // Adjust speed for sensitivity
+          speed: {type: 'number', default: 5}
         },
         init: function() {
           this.startTouch = null;
@@ -21,7 +21,7 @@
           this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd);
         },
         handleTouchStart: function(event) {
-          if (event.touches.length === 1) { // Only initiate for single touch
+          if (event.touches.length === 1) {
             this.startTouch = {
               x: event.touches[0].clientX,
               y: event.touches[0].clientY
@@ -47,7 +47,7 @@
           }
         },
         handleTouchEnd: function(event) {
-          this.startTouch = null; // Reset start touch position
+          this.startTouch = null;
           this.startRotation = null;
         }
       });
@@ -55,22 +55,23 @@
       AFRAME.registerComponent('click-listener', {
         init: function() {
           this.el.addEventListener('click', function() {
-            alert('button clicked'); // Customize this action
+            alert('button clicked');
           });
         }
       });
     </script>
 </head>
-<body style='margin :0; overflow: hidden;'>
+<body style='margin: 0; overflow: hidden;'>
 <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
     <a-marker preset='hiro'>
         <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.8" touch-rotate>
-            <!-- Adjust the yellow square size and position -->
-            <a-plane position="0 0.25 0" rotation="-90 0 0" width="0.1" height="0.1" color="yellow" click-listener></a-plane>
+            <!-- Properly positioned yellow square -->
+            <a-plane position="0 0.6 0" rotation="-90 0 0" width="0.2" height="0.2" color="yellow" click-listener></a-plane>
         </a-box>
     </a-marker>
     <a-entity camera></a-entity>
 </a-scene>
 </body>
 </html>
+
 
