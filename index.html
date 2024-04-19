@@ -6,19 +6,14 @@
     <script>
       AFRAME.registerComponent('touch-rotate', {
         schema: {
-          speed: {type: 'number', default: 5} // Adjust speed for sensitivity
+          speed: {type: 'number', default: 5}
         },
         init: function() {
           this.startTouch = null;
           this.startRotation = null;
-
-          this.handleTouchStart = this.handleTouchStart.bind(this);
-          this.handleTouchMove = this.handleTouchMove.bind(this);
-          this.handleTouchEnd = this.handleTouchEnd.bind(this);
-
-          this.el.sceneEl.addEventListener('touchstart', this.handleTouchStart, {passive: false});
-          this.el.sceneEl.addEventListener('touchmove', this.handleTouchMove, {passive: false});
-          this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd);
+          this.el.sceneEl.addEventListener('touchstart', this.handleTouchStart.bind(this), {passive: false});
+          this.el.sceneEl.addEventListener('touchmove', this.handleTouchMove.bind(this), {passive: false});
+          this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd.bind(this));
         },
         handleTouchStart: function(event) {
           if (event.touches.length === 1) {
@@ -30,16 +25,14 @@
           }
         },
         handleTouchMove: function(event) {
-          if (event.touches.length === 1 && this.startTouch) {
+          if (this.startTouch) {
             const deltaX = event.touches[0].clientX - this.startTouch.x;
             const deltaY = event.touches[0].clientY - this.startTouch.y;
-
             const newRotation = {
               x: this.startRotation.x - deltaY * this.data.speed * 0.1,
               y: this.startRotation.y + deltaX * this.data.speed * 0.1,
               z: this.startRotation.z
             };
-
             this.el.setAttribute('rotation', newRotation);
             event.preventDefault();
           }
@@ -50,11 +43,16 @@
         }
       });
 
-      AFRAME.registerComponent('click-listener', {
+      AFRAME.registerComponent('detect-click', {
         init: function() {
-          this.el.addEventListener('click', function() {
+          this.onClick = this.onClick.bind(this);
+          this.el.sceneEl.addEventListener('click', this.onClick);
+        },
+        onClick: function(evt) {
+          const intersectedElement = evt.detail.intersectedEl;
+          if (intersectedElement === this.el) {
             alert('Button clicked');
-          });
+          }
         }
       });
     </script>
@@ -64,7 +62,7 @@
     <a-marker preset='hiro'>
         <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate>
             <!-- Small white square on the top of the red cube -->
-            <a-box position="0 0.55 0" rotation="0 0 0" material="color: white; opacity: 1" scale="0.2 0.2 0.2" click-listener></a-box>
+            <a-box position="0 0.55 0" rotation="0 0 0" material="color: white; opacity: 1" scale="0.2 0.2 0.2" detect-click></a-box>
         </a-box>
     </a-marker>
     <a-entity camera></a-entity>
