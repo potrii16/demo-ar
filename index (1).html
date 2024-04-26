@@ -1,12 +1,13 @@
 <!doctype HTML>
 <html>
 <head>
+    <title>AR Example</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
     <script>
       AFRAME.registerComponent('touch-rotate', {
         schema: {
-          speed: {type: 'number', default: 5}
+          speed: {type: 'number', default: 1}  // Reduced speed for better control
         },
         init: function() {
           this.startTouch = null;
@@ -14,8 +15,9 @@
           this.handleTouchStart = this.handleTouchStart.bind(this);
           this.handleTouchMove = this.handleTouchMove.bind(this);
           this.handleTouchEnd = this.handleTouchEnd.bind(this);
-          this.el.sceneEl.addEventListener('touchstart', this.handleTouchStart, {passive: false});
-          this.el.sceneEl.addEventListener('touchmove', this.handleTouchMove, {passive: false});
+
+          this.el.sceneEl.addEventListener('touchstart', this.handleTouchStart);
+          this.el.sceneEl.addEventListener('touchmove', this.handleTouchMove);
           this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd);
         },
         handleTouchStart: function(event) {
@@ -33,16 +35,18 @@
             const currentY = event.touches[0].clientY;
             const deltaX = currentX - this.startTouch.x;
             const deltaY = currentY - this.startTouch.y;
+
             const newRotation = {
-              x: this.startRotation.x - deltaY * this.data.speed * 0.1,
-              y: this.startRotation.y + deltaX * this.data.speed * 0.1,
+              x: this.startRotation.x - deltaY * this.data.speed,
+              y: this.startRotation.y + deltaX * this.data.speed,
               z: this.startRotation.z
             };
+
             this.el.setAttribute('rotation', newRotation);
             event.preventDefault();
           }
         },
-        handleTouchEnd: function(event) {
+        handleTouchEnd: function() {
           this.startTouch = null;
           this.startRotation = null;
         }
@@ -50,7 +54,7 @@
     </script>
 </head>
 <body style='margin: 0; overflow: hidden;'>
-    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: true;'>
         <a-marker preset='hiro'>
             <a-box position="0 0.5 0" rotation="0 0 0" color="red" touch-rotate>
                 <a-box position="0 0.5 0" rotation="0 0 0" color="white" scale="0.5 0.5 0.5"></a-box>
@@ -58,5 +62,16 @@
         </a-marker>
         <a-entity camera></a-entity>
     </a-scene>
+    <script>
+      window.onload = () => {
+        console.log('AR.js fully loaded');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          console.log('Webcam access is possible in this browser.');
+        } else {
+          console.log('Webcam access is not possible in this browser.');
+        }
+      };
+    </script>
 </body>
 </html>
+
