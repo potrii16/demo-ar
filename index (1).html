@@ -6,22 +6,20 @@
     <script>
       AFRAME.registerComponent('touch-rotate', {
         schema: {
-          speed: {type: 'number', default: 5} // Adjust speed for sensitivity
+          speed: {type: 'number', default: 5}
         },
         init: function() {
           this.startTouch = null;
           this.startRotation = null;
-
           this.handleTouchStart = this.handleTouchStart.bind(this);
           this.handleTouchMove = this.handleTouchMove.bind(this);
           this.handleTouchEnd = this.handleTouchEnd.bind(this);
-
           this.el.sceneEl.addEventListener('touchstart', this.handleTouchStart, {passive: false});
           this.el.sceneEl.addEventListener('touchmove', this.handleTouchMove, {passive: false});
           this.el.sceneEl.addEventListener('touchend', this.handleTouchEnd);
         },
         handleTouchStart: function(event) {
-          if (event.touches.length === 1) { // Only initiate for single touch
+          if (event.touches.length === 1) {
             this.startTouch = {
               x: event.touches[0].clientX,
               y: event.touches[0].clientY
@@ -35,30 +33,30 @@
             const currentY = event.touches[0].clientY;
             const deltaX = currentX - this.startTouch.x;
             const deltaY = currentY - this.startTouch.y;
-
             const newRotation = {
               x: this.startRotation.x - deltaY * this.data.speed * 0.1,
               y: this.startRotation.y + deltaX * this.data.speed * 0.1,
               z: this.startRotation.z
             };
-
             this.el.setAttribute('rotation', newRotation);
             event.preventDefault();
           }
         },
         handleTouchEnd: function(event) {
-          this.startTouch = null; // Reset start touch position
+          this.startTouch = null;
           this.startRotation = null;
         }
       });
     </script>
 </head>
 <body style='margin: 0; overflow: hidden;'>
-<a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-    <a-marker preset='hiro'>
-        <a-box position="0 0.5 0" rotation="0 0 0" material="color: red; opacity: 0.5" touch-rotate></a-box>
-    </a-marker>
-    <a-entity camera></a-entity>
-</a-scene>
+    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+        <a-marker preset='hiro'>
+            <a-box position="0 0.5 0" rotation="0 0 0" color="red" touch-rotate>
+                <a-box position="0 0.5 0" rotation="0 0 0" color="white" scale="0.5 0.5 0.5"></a-box>
+            </a-box>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
 </body>
 </html>
